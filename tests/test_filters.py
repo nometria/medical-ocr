@@ -1,4 +1,4 @@
-"""Tests for medical-ocr filters — no GPU/tesseract required."""
+"""Tests for medical-ocr filters - no GPU/tesseract required."""
 import sys
 import os
 import pytest

@@ -9,7 +9,7 @@ References:
   - i2b2 2010: Clinical concept extraction (problems, treatments, tests)
   - i2b2 2012: Temporal relations in clinical narratives
   - n2c2 2018: Medication extraction (drug, dosage, route, frequency, duration)
-  - SOTA: RoBERTa-MIMIC (Si et al., 2020) — F1 0.8994 on i2b2 2010
+  - SOTA: RoBERTa-MIMIC (Si et al., 2020) - F1 0.8994 on i2b2 2010
 """
 import json
 from pathlib import Path
@@ -69,7 +69,7 @@ OUR_SCORES = {
 
 def main():
     print("=" * 78)
-    print("Medical-OCR — Industry Benchmark Comparison")
+    print("Medical-OCR - Industry Benchmark Comparison")
     print("=" * 78)
 
     # Section 1: Our scores
@@ -78,7 +78,7 @@ def main():
     print(f"  {'Field':<25} {'F1 Score':<12} {'Category'}")
     print(f"  {'─'*25} {'─'*12} {'─'*30}")
     for field, data in OUR_SCORES.items():
-        cat = data["maps_to"] or "—"
+        cat = data["maps_to"] or "-"
         print(f"  {field:<25} {data['f1']:<12.3f} {cat}")
 
     # Section 2: Comparison to i2b2/n2c2 baselines
@@ -131,13 +131,13 @@ def main():
     print(f"""
   Important context:
     • i2b2/n2c2 SOTA uses transformer models (RoBERTa-MIMIC) trained on
-      millions of clinical notes — our tool uses regex/pattern matching
+      millions of clinical notes - our tool uses regex/pattern matching
     • Our ICD/CPT code extraction achieves F1=1.000 on structured codes
       because these follow strict formats (e.g., M54.5, 99213)
     • Our medication F1=0.903 is competitive with n2c2 SOTA (0.891)
       for the drug-name + dosage sub-task
     • Free-text entity extraction (body parts, restrictions) has lower
-      scores — these benefit from NER model integration
+      scores - these benefit from NER model integration
     • Our tool runs at <1ms per document (regex) vs seconds (transformer)
 
   Methodology:

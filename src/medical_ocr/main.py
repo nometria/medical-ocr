@@ -1,8 +1,9 @@
 from fastapi import FastAPI, File, UploadFile
 import uvicorn
 from .extractor import extract, OCR
-from .pipeline import generate_summary
+from .pipeline import generate_summary, generate_summary_with_confidence
 from .export_md import to_markdown
+from .classify import guess_doc_type
 import uuid
 import os
 from typing import Any, Dict, List, Optional
@@ -311,6 +312,12 @@ def extract_from_doc(
                     source_name=src_name
                 )
 
+                # Classify each record so the timeline + aggregation get a real
+                # document type instead of falling back to "Medical Record".
+                classified_type = guess_doc_type(text or "")
+                for rec in file_records:
+                    rec.setdefault("doc_type", classified_type)
+
                 # Ensure iterable
                 if isinstance(file_records, dict):
                     file_records = [file_records]
@@ -354,14 +361,16 @@ def extract_from_doc(
                     "error": str(e),
                 })
                 continue
-        # Run the summarizer pipeline
-        summary_out = generate_summary(all_records)
+        # Run the summarizer pipeline (with heuristic per-record confidence).
+        summary_out = generate_summary_with_confidence(all_records)
 
-        # Create a short markdown preview (you can return full markdown if you prefer)
+        # Create a markdown preview that now includes case-status, coded
+        # entities and confidence (see export_md.to_markdown).
         try:
             markdown_full = to_markdown(summary_out)
             markdown_preview = markdown_full[:2000]  # trim to keep response light
         except Exception as _:
+            markdown_full = None
             markdown_preview = None
 
         # Shape the response
@@ -370,8 +379,12 @@ def extract_from_doc(
             "text": text,                    # full OCR text
             "summary": summary_out,          # full summarizer output (includes summary_text, faq, etc.)
             "summary_text": summary_out.get("summary_text") if isinstance(summary_out, dict) else None,
+            "entities": summary_out.get("entities") if isinstance(summary_out, dict) else None,
+            "confidence": summary_out.get("confidence") if isinstance(summary_out, dict) else None,
             "faq": summary_out.get("faq") if isinstance(summary_out, dict) else None,
-            "markdown_preview": markdown_preview
+            "markdown": markdown_full,
+            "markdown_preview": markdown_preview,
+            "per_file": per_file_results,
         }
         return response
 

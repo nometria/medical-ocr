@@ -1,6 +1,6 @@
 # medical-ocr
 
-Built by the [Nometria](https://nometria.com) team. We help developers take apps built with AI tools (Lovable, Bolt, Base44, Replit) to production — handling deployment to AWS, security, scaling, and giving you full code ownership. [Learn more →](https://nometria.com)
+Built by the [Nometria](https://nometria.com) team. We help developers take apps built with AI tools (Lovable, Bolt, Base44, Replit) to production - handling deployment to AWS, security, scaling, and giving you full code ownership. [Learn more →](https://nometria.com)
 
 > Multi-engine OCR pipeline for medical and legal documents.
 > Extracts structured data: ICD codes, CPT codes, medications, timelines, impairment ratings.
@@ -55,9 +55,9 @@ pip install -e ".[litellm]"    # Use any LiteLLM-supported provider
 
 ## What it does
 
-1. **OCR** — Three-engine pipeline: Tesseract (primary) → EasyOCR (secondary) → Google Cloud Vision (fallback)
-2. **Classify** — Identifies 8 medical document types (treatment records, prescriptions, imaging, IME reports, etc.)
-3. **Extract** — Pulls structured data per document:
+1. **OCR** - Three-engine pipeline: Tesseract (primary) → EasyOCR (secondary) → Google Cloud Vision (fallback)
+2. **Classify** - Identifies 8 medical document types (treatment records, prescriptions, imaging, IME reports, etc.)
+3. **Extract** - Pulls structured data per document:
    - ICD-10 diagnosis codes
    - CPT billing codes
    - Medications (name + dosage + frequency)
@@ -65,9 +65,9 @@ pip install -e ".[litellm]"    # Use any LiteLLM-supported provider
    - Work restrictions
    - MMI (Maximum Medical Improvement) status
    - Impairment ratings
-4. **Timeline** — Builds chronological treatment timeline across all records
-5. **Summary** — Generates attorney-ready structured summary (demand letter format)
-6. **Export** — DOCX or Markdown output
+4. **Timeline** - Builds chronological treatment timeline across all records
+5. **Summary** - Generates attorney-ready structured summary (demand letter format)
+6. **Export** - DOCX or Markdown output
 
 ---
 
@@ -82,7 +82,14 @@ POST /extract_from_doc              →  upload file(s) with structured extracti
                                     →  OCR + classify document type
                                     →  extract structured fields
                                     →  generate timeline + summary
-                                    →  return JSON
+                                    →  return JSON { data, text, summary,
+                                       summary_text, entities, confidence,
+                                       faq, markdown, markdown_preview }
+                                    →  body.file_format: patient_details (default)
+                                       | prescription  selects the extractor
+                                    →  summary.entities rolls ICD-10 / CPT /
+                                       meds / body_parts / restrictions into
+                                       flat de-duplicated document-level lists
 
 POST /cases/{case_id}/documents     →  batch upload multiple files for a case
                                     →  process each through the OCR pipeline
@@ -198,8 +205,8 @@ curl http://localhost:9080/cases/case-001/documents
 
 Every OCR result now includes confidence scores at two levels:
 
-- **Per-page confidence** — from the OCR engine (Tesseract word-level confidence averaged, or quality heuristics when engine data is unavailable)
-- **Overall document confidence** — average of all page confidences
+- **Per-page confidence** - from the OCR engine (Tesseract word-level confidence averaged, or quality heuristics when engine data is unavailable)
+- **Overall document confidence** - average of all page confidences
 
 Confidence is available in:
 - The batch endpoint response (`confidence.overall`, `confidence.per_page`)
@@ -224,13 +231,13 @@ PDF files are rasterised at 300 DPI by default. Image files are loaded directly 
 
 ## Industry Benchmark Comparison
 
-Our extraction scores evaluated against [i2b2](https://www.i2b2.org/) / [n2c2](https://n2c2.dbmi.hms.harvard.edu/) clinical NER shared task methodology — the gold standard for medical entity extraction.
+Our extraction scores evaluated against [i2b2](https://www.i2b2.org/) / [n2c2](https://n2c2.dbmi.hms.harvard.edu/) clinical NER shared task methodology - the gold standard for medical entity extraction.
 
 | Task | Benchmark | SOTA (RoBERTa-MIMIC) | Our Score | Notes |
 |------|-----------|---------------------|-----------|-------|
 | Clinical concepts | i2b2 2010 | F1 0.899 | **F1 0.938** | ICD codes (1.00) + body parts (0.875) |
 | Medication extraction | n2c2 2018 | F1 0.891 | **F1 0.952** | CPT codes (1.00) + medications (0.903) |
-| Temporal relations | i2b2 2012 | F1 0.805 | — | Timeline building (not directly comparable) |
+| Temporal relations | i2b2 2012 | F1 0.805 | - | Timeline building (not directly comparable) |
 
 **Context:** i2b2/n2c2 SOTA uses transformer models trained on millions of clinical notes. Our tool uses regex/pattern matching, achieving competitive F1 on structured entities (ICD/CPT codes) at <1ms per document vs seconds for transformer models. Free-text entities (restrictions, body parts) benefit from the optional LLM refinement pass.
 

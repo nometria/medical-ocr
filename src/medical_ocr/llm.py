@@ -4,7 +4,7 @@ Multi-LLM abstraction layer.
 Routes text-generation requests to OpenAI, Anthropic, or any LiteLLM-supported
 provider based on the ``LLM_PROVIDER`` and ``LLM_MODEL`` environment variables.
 
-Image generation (DALL-E) remains OpenAI-only — no other provider offers an
+Image generation (DALL-E) remains OpenAI-only - no other provider offers an
 equivalent API at the time of writing.
 
 Environment variables
@@ -172,7 +172,7 @@ def _ask_litellm(prompt, system, max_tokens, temperature, response_json):
 
 
 # ---------------------------------------------------------------------------
-# Image generation — OpenAI-only (DALL-E)
+# Image generation - OpenAI-only (DALL-E)
 #
 # NOTE: Image generation stays OpenAI-only because neither Anthropic nor most
 # other providers expose an equivalent image-generation API. Callers must have
@@ -183,7 +183,7 @@ def generate_image(prompt: str, size: str = "1024x1024", quality: str = "standar
     """
     Generate an image via OpenAI DALL-E and return the URL.
 
-    Always uses OpenAI regardless of ``LLM_PROVIDER`` — this is the only
+    Always uses OpenAI regardless of ``LLM_PROVIDER`` - this is the only
     provider with a production image-generation API.
     """
     from openai import OpenAI

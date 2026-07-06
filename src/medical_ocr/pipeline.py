@@ -58,6 +58,39 @@ def _calculate_document_confidence(
     return round(sum(page_confidences) / len(page_confidences), 4)
 
 
+def aggregate_entities(timeline_out: List[Dict[str, Any]]) -> Dict[str, List[str]]:
+    """
+    Roll up the per-event clinical entities into flat, de-duplicated lists.
+
+    The timeline carries ICD/CPT/medication/body-part/restriction data on each
+    event; consumers (the web tool, exports) want a single document-level view.
+    Order is preserved on first appearance so the lists read chronologically.
+    """
+    keys = ("icd_codes", "cpt_codes", "meds", "body_parts", "restrictions", "diagnoses")
+    buckets: Dict[str, List[str]] = {k: [] for k in keys}
+    doc_types: List[str] = []
+
+    for e in timeline_out:
+        dt = e.get("doc_type")
+        if dt and dt not in doc_types:
+            doc_types.append(dt)
+        for k in keys:
+            for v in e.get(k) or []:
+                v = (str(v) or "").strip()
+                if v and v not in buckets[k]:
+                    buckets[k].append(v)
+
+    return {
+        "doc_types": doc_types,
+        "icd10": buckets["icd_codes"],
+        "cpt": buckets["cpt_codes"],
+        "medications": buckets["meds"],
+        "body_parts": buckets["body_parts"],
+        "restrictions": buckets["restrictions"],
+        "diagnoses": buckets["diagnoses"],
+    }
+
+
 def generate_summary(ocr_records: List[Dict[str, Any]], target_chars: int = 2000) -> Dict[str, Any]:
     records = []
     for i, r in enumerate(ocr_records):
@@ -92,6 +125,7 @@ def generate_summary(ocr_records: List[Dict[str, Any]], target_chars: int = 2000
         "timeline": timeline_out,
         "metrics": metrics,
         "artifacts": asdict(artifacts),
+        "entities": aggregate_entities(timeline_out),
         "faq": faq
     }
 

@@ -74,7 +74,7 @@ def craft_summary(events: List[TimelineEvent], artifacts: SummaryArtifacts, max_
             core.append(e.plan.split("\\n")[0][:180])
         if e.restrictions: 
             core.append("Restrictions: " + join_unique(e.restrictions, sep="; ", limit=2))
-        line = f"{d} | {e.doc_type}: " + " — ".join([c for c in core if c])
+        line = f"{d} | {e.doc_type}: " + " - ".join([c for c in core if c])
         bullets.append(line)
 
     paragraph = " ".join(bg + diag + status)
